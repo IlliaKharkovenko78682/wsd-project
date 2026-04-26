@@ -10,6 +10,6 @@ class Task extends Model
         'title',
         'description',
         'status',
-        'album_number',
+        'priority',
     ];
 }

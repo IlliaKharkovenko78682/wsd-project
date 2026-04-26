@@ -4,64 +4,66 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Task;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class TaskController extends Controller
 {
-    public function index()
+    public function index(): JsonResponse
     {
-        $tasks = Task::all();
+        $tasks = Cache::remember('tasks.index', 60, function () {
+            return Task::query()->latest()->get();
+        });
 
-        return response()->json($tasks, 200);
+        return response()->json([
+            'items' => $tasks,
+        ], 200);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string'],
-            'status' => ['nullable', 'string', 'max:50'],
-            'album_number' => ['required', 'string', 'max:100'],
+            'status' => ['required', 'in:todo,doing,done'],
+            'priority' => ['required', 'in:low,medium,high'],
         ]);
 
-        $task = Task::create([
-            'title' => $validated['title'],
-            'description' => $validated['description'] ?? null,
-            'status' => $validated['status'] ?? 'todo',
-            'album_number' => $validated['78682'],
-        ]);
+        $task = Task::create($validated);
+
+        Cache::forget('tasks.index');
 
         return response()->json($task, 201);
     }
 
-    public function show(string $id)
+    public function show(Task $task): JsonResponse
     {
-        $task = Task::findOrFail($id);
-
         return response()->json($task, 200);
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request, Task $task): JsonResponse
     {
-        $task = Task::findOrFail($id);
-
         $validated = $request->validate([
-            'title' => ['sometimes', 'required', 'string', 'max:255'],
-            'description' => ['sometimes', 'nullable', 'string'],
-            'status' => ['sometimes', 'nullable', 'string', 'max:50'],
-            'album_number' => ['sometimes', 'required', 'string', 'max:100'],
+            'title' => ['sometimes', 'string', 'max:200'],
+            'description' => ['nullable', 'string'],
+            'status' => ['sometimes', 'in:todo,doing,done'],
+            'priority' => ['sometimes', 'in:low,medium,high'],
         ]);
 
         $task->update($validated);
 
-        return response()->json($task->fresh(), 200);
+        Cache::forget('tasks.index');
+
+        return response()->json($task, 200);
     }
 
-    public function destroy(string $id)
+    public function destroy(Task $task): JsonResponse
     {
-        $task = Task::findOrFail($id);
         $task->delete();
 
-        return response()->noContent();
+        Cache::forget('tasks.index');
+
+        return response()->json(null, 204);
     }
 }

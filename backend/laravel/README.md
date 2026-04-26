@@ -57,3 +57,27 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## API Version
+
+Current version: `/api/78682/v1`
+
+Available endpoints:
+
+- `GET /api/78682/v1/tasks`
+- `POST /api/78682/v1/tasks`
+- `GET /api/78682/v1/tasks/{id}`
+- `PUT /api/78682/v1/tasks/{id}`
+- `DELETE /api/78682/v1/tasks/{id}`
+
+## Status Codes
+
+- `200 OK` – successful read or update
+- `201 Created` – resource created
+- `204 No Content` – resource deleted
+- `404 Not Found` – missing resource
+- `422 Unprocessable Entity` – validation error
+
+## API Standardization
+
+The API uses a versioned route prefix to support future changes without breaking existing clients. HTTP status codes are standardized according to REST conventions. Validation errors and missing resources are handled consistently to make the API predictable and easier to integrate with frontend applications.
